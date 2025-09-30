@@ -1,0 +1,601 @@
+/* App специфичные стили */
+
+
+
+/* Темы */
+[data-theme="light"] {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #007AFF;
+  --tg-theme-button-color: #007AFF;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f1f1f1;
+}
+
+[data-theme="dark"] {
+  --tg-theme-bg-color: #1c1c1e;
+  --tg-theme-text-color: #ffffff;
+  --tg-theme-hint-color: #8e8e93;
+  --tg-theme-link-color: #007AFF;
+  --tg-theme-button-color: #007AFF;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #2c2c2e;
+}
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Адаптивность header для разных размеров экрана */
+@media (max-width: 480px) {
+  #header {
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 12px;
+    min-height: 40px;
+  }
+  
+
+  
+  #main-content {
+    padding: 12px;
+  }
+}
+
+/* Fullscreen режим - прозрачный header */
+body.fullscreen-mode #header {
+  background-color: transparent !important;
+  border-bottom: none !important;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+body.fullscreen-mode #main-content {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 76px);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
+  min-height: 100vh;
+}
+
+
+
+/* Свайп-навигация */
+.swipe-navigation {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-indicator {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: var(--tg-theme-button-color, #2481cc);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tg-theme-button-text-color, #ffffff);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.swipe-indicator.left {
+  left: 20px;
+}
+
+.swipe-indicator.right {
+  right: 20px;
+}
+
+.swipe-indicator.active {
+  opacity: 0.8;
+  animation: swipe-pulse 0.3s ease;
+}
+
+@keyframes swipe-pulse {
+  0% { transform: translateY(-50%) scale(0.8); }
+  50% { transform: translateY(-50%) scale(1.1); }
+  100% { transform: translateY(-50%) scale(1); }
+}
+
+/* Улучшенные анимации переходов */
+.fade-in {
+  animation: fadeInSlide 0.3s ease-out;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fade-out {
+  animation: fadeOutSlide 0.2s ease-in;
+}
+
+@keyframes fadeOutSlide {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+
+
+/* Индикатор навигации */
+.navigation-breadcrumb {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--tg-theme-secondary-bg-color, rgba(0, 0, 0, 0.1));
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--tg-theme-text-color, #000000);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.navigation-breadcrumb.visible {
+  opacity: 0.8;
+}
+
+/* Адаптация для разных размеров WebApp */
+@media (max-height: 500px) {
+  .swipe-indicator {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .navigation-breadcrumb {
+    top: calc(env(safe-area-inset-top, 0px) + 5px);
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+}
+
+body.compact-mode #main-content {
+  padding: 8px;
+}
+
+/* Ошибки в формах */
+.form-error {
+  color: var(--tg-theme-destructive-text-color, #ff3b30);
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-error i {
+  font-size: 10px;
+}
+
+.form-input.error {
+  border-color: var(--tg-theme-destructive-text-color, #ff3b30) !important;
+  background-color: rgba(255, 59, 48, 0.1) !important;
+}
+
+/* Селектор сервисов */
+.service-selector {
+  margin-bottom: 16px;
+}
+
+.selected-service {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color);
+  padding: 4px 0;
+}
+
+.service-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.service-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--tg-theme-secondary-bg-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--tg-theme-section-separator-color);
+}
+
+.service-option:active {
+  transform: scale(0.98);
+}
+
+.service-option.active {
+  background: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  border-color: var(--tg-theme-button-color);
+}
+
+.service-option i:first-child {
+  width: 16px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.service-option.active i:first-child {
+  opacity: 1;
+}
+
+.service-option span {
+  flex: 1;
+  font-weight: 500;
+}
+
+.service-option i:last-child {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+/* Роли и статусы */
+.role-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+
+.role-owner {
+  background: #ff9500;
+  color: white;
+}
+
+.role-manager {
+  background: #007aff;
+  color: white;
+}
+
+.role-employee {
+  background: #34c759;
+  color: white;
+}
+
+.role-select {
+  padding: 4px 8px;
+  border: 1px solid var(--tg-theme-hint-color);
+  border-radius: 4px;
+  background: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+/* Формы */
+.form-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--tg-theme-hint-color);
+  border-radius: 8px;
+  background: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  font-size: 14px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+  margin-top: 4px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+/* Информационные шаги */
+.info-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.step-text {
+  flex: 1;
+  padding-top: 2px;
+}
+
+/* Welcome Page */
+.welcome-page {
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.welcome-header {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.welcome-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--tg-theme-button-color), #1a73e8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 4px 16px rgba(36, 129, 204, 0.3);
+}
+
+.welcome-logo i {
+  color: white;
+  font-size: 32px;
+}
+
+.welcome-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+  margin: 0 0 8px;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: var(--tg-theme-hint-color);
+  margin: 0;
+}
+
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--tg-theme-secondary-bg-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-icon i {
+  color: var(--tg-theme-accent-text-color);
+  font-size: 20px;
+}
+
+.action-info {
+  flex: 1;
+}
+
+.action-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+  margin-bottom: 4px;
+}
+
+.action-desc {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color);
+  line-height: 1.4;
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.welcome-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--tg-theme-secondary-bg-color);
+  border-radius: 12px;
+  border: 1px solid var(--tg-theme-section-separator-color);
+}
+
+.info-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-icon i {
+  color: var(--tg-theme-accent-text-color);
+  font-size: 16px;
+}
+
+.info-text {
+  font-size: 14px;
+  color: var(--tg-theme-text-color);
+  line-height: 1.4;
+}
+
+/* QR Generator */
+.qr-generator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.qr-code-container {
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qr-code-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+}
+
+.qr-info {
+  text-align: center;
+}
+
+.qr-user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color);
+  margin-bottom: 4px;
+}
+
+.qr-instruction {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+}
+
+/* Organization Registration */
+.organization-registration {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.registration-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--tg-theme-button-color), #1a73e8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.registration-icon i {
+  color: white;
+  font-size: 24px;
+}
+
+.registration-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+  margin: 0 0 8px;
+}
+
+.registration-subtitle {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+/* Увеличенные отступы для первых двух карточек */
+.registration-form .card:first-child {
+  margin-top: 24px;
+}
+
+.registration-form .card:nth-child(2) {
+  margin-top: 24px;
+}
+
+.registration-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.registration-actions .btn {
+  flex: 1;
+}
+}

@@ -1,0 +1,111 @@
+services:
+  cloudpub-init:
+    build: ./cloudpub-init
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: always
+    depends_on:
+      - cloudpub-client
+      - cloudpub-admin
+      - cloudpub-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.env:/workspace/.env
+      - .:/workspace
+
+  server:
+    build: ./server
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=3001
+      - CLOUDPUB_SERVER_URL=${CLOUDPUB_SERVER_URL}
+      - CLOUDPUB_CLIENT_URL=${CLOUDPUB_CLIENT_URL}
+      - CLOUDPUB_ADMIN_URL=${CLOUDPUB_ADMIN_URL}
+    restart: always
+    ports:
+      - "3001:3001"
+    labels:
+      - "cloudpub.service=server"
+
+  client:
+    build:
+      context: ./client
+      args:
+        - CLOUDPUB_SERVER_URL=${CLOUDPUB_SERVER_URL}
+        - CLOUDPUB_CLIENT_URL=${CLOUDPUB_CLIENT_URL}
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: always
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+    labels:
+      - "cloudpub.service=client"
+
+  admin-client:
+    build:
+      context: ./admin-client
+      args:
+        - CLOUDPUB_SERVER_URL=${CLOUDPUB_SERVER_URL}
+        - CLOUDPUB_ADMIN_URL=${CLOUDPUB_ADMIN_URL}
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: always
+    depends_on:
+      - server
+    ports:
+      - "3002:3002"
+    labels:
+      - "cloudpub.service=admin-client"
+
+  bot-client:
+    build: ./bot-client
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - ADMIN_CHAT_ID=${ADMIN_CHAT_ID}
+      - CLOUDPUB_CLIENT_URL=${CLOUDPUB_CLIENT_URL}
+    depends_on:
+      - client
+    restart: always
+    labels:
+      - "cloudpub.service=bot-client"
+
+  cloudpub-client:
+    image: cloudpub/cloudpub:latest
+    restart: ${CLOUDPUB_RESTART_POLICY}
+    environment:
+      - TOKEN=${CLOUDPUB_TOKEN}
+      - HTTP=client:3000
+    command: run
+    depends_on:
+      - client
+    labels:
+      - "cloudpub.kind=cloudpub"
+      - "cloudpub.role=client"
+
+  cloudpub-admin:
+    image: cloudpub/cloudpub:latest
+    restart: ${CLOUDPUB_RESTART_POLICY}
+    environment:
+      - TOKEN=${CLOUDPUB_TOKEN}
+      - HTTP=admin-client:3002
+    command: run
+    depends_on:
+      - admin-client
+    labels:
+      - "cloudpub.kind=cloudpub"
+      - "cloudpub.role=admin"
+
+  cloudpub-server:
+    image: cloudpub/cloudpub:latest
+    restart: ${CLOUDPUB_RESTART_POLICY}
+    environment:
+      - TOKEN=${CLOUDPUB_TOKEN}
+      - HTTP=server:3001
+    command: run
+    depends_on:
+      - server
+    labels:
+      - "cloudpub.kind=cloudpub"
+      - "cloudpub.role=server"

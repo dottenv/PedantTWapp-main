@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказ - PedantTW</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2481cc;
+            margin-bottom: 8px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 12px;
+            max-width: 400px;
+            margin: 20px auto 0;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #2481cc;
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            background: #2481cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-btn:hover {
+            background: #1a73e8;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .order-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2481cc;
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .media-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .media-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .media-item:hover {
+            transform: scale(1.02);
+        }
+
+        .media-item img,
+        .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            font-size: 48px;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2481cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+
+        .modal-content img,
+        .modal-content video {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .media-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+            
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">PedantTW</div>
+            <p>Просмотр заказа</p>
+            
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="orderNumber" 
+                    placeholder="Введите номер заказа"
+                    required
+                >
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i> Найти
+                </button>
+            </form>
+        </div>
+
+        <div id="content"></div>
+    </div>
+
+    <!-- Модальное окно для просмотра медиа -->
+    <div id="mediaModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        // Получение номера заказа из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderFromUrl = urlParams.get('order');
+        
+        if (orderFromUrl) {
+            document.getElementById('orderNumber').value = orderFromUrl;
+            searchOrder(orderFromUrl);
+        }
+
+        // Обработка формы поиска
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const orderNumber = document.getElementById('orderNumber').value.trim();
+            if (orderNumber) {
+                searchOrder(orderNumber);
+                // Обновляем URL без перезагрузки страницы
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('order', orderNumber);
+                window.history.pushState({}, '', newUrl);
+            }
+        });
+
+        async function searchOrder(orderNumber) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Поиск заказа...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderNumber}/public`);
+                const data = await response.json();
+
+                if (data.success && data.order) {
+                    displayOrder(data.order);
+                } else {
+                    showError('Заказ не найден');
+                }
+            } catch (error) {
+                console.error('Ошибка поиска:', error);
+                showError('Ошибка при поиске заказа');
+            }
+        }
+
+        function displayOrder(order) {
+            const content = document.getElementById('content');
+            const mediaItems = order.media || [];
+            
+            content.innerHTML = `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-number">Заказ #${order.id}</div>
+                        <div class="order-date">${formatDate(order.created_at)}</div>
+                    </div>
+                    
+                    <p><strong>Создатель:</strong> ${order.created_by}</p>
+                    <p><strong>Количество файлов:</strong> ${mediaItems.length}</p>
+                    
+                    ${mediaItems.length > 0 ? `
+                        <div class="media-gallery">
+                            ${mediaItems.map((item, index) => `
+                                <div class="media-item" onclick="openModal('${item.url}', '${item.type}')">
+                                    ${item.type === 'image' ? 
+                                        `<img src="${item.thumbnail || item.url}" alt="Медиа ${index + 1}">` :
+                                        `<video src="${item.url}" muted>
+                                            <div class="media-placeholder">
+                                                <i class="fas fa-play"></i>
+                                            </div>
+                                        </video>`
+                                    }
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="error-message">
+                            <i class="fas fa-camera" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                            <p>Медиафайлы не найдены</p>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px; color: #ff6b6b;"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function formatDate(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return 'Неизвестно';
+            }
+        }
+
+        function openModal(url, type) {
+            const modal = document.getElementById('mediaModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (type === 'image') {
+                modalContent.innerHTML = `<img src="${url}" alt="Медиа">`;
+            } else {
+                modalContent.innerHTML = `<video src="${url}" controls autoplay>`;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // Закрытие модального окна
+        document.getElementById('mediaModal').addEventListener('click', function(e) {
+            if (e.target === this || e.target.classList.contains('close-modal')) {
+                this.style.display = 'none';
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('mediaModal').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

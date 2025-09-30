@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Галерея заказа</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .order-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .order-subtitle {
+            font-size: 18px;
+            color: #86868b;
+            margin-bottom: 20px;
+        }
+
+        .order-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #86868b;
+            font-size: 14px;
+        }
+
+        .actions {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .download-all-btn {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-all-btn:hover {
+            background: #0056b3;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .photo-item {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            aspect-ratio: 1;
+        }
+
+        .photo-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px 20px;
+            color: #ff3b30;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Photo viewer modal */
+        .photo-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-viewer.active {
+            display: flex;
+        }
+
+        .photo-viewer img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .photo-viewer .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            transition: background 0.2s ease;
+        }
+
+        .photo-viewer .close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .photo-viewer .nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            transition: background 0.2s ease;
+        }
+
+        .photo-viewer .nav:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .photo-viewer .nav.prev {
+            left: 20px;
+        }
+
+        .photo-viewer .nav.next {
+            right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px 15px;
+                margin-bottom: 30px;
+            }
+
+            .order-title {
+                font-size: 24px;
+            }
+
+            .order-subtitle {
+                font-size: 16px;
+            }
+
+            .order-info {
+                gap: 20px;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="order-title" id="orderTitle">Загрузка...</div>
+            <div class="order-subtitle">Галерея фотографий</div>
+            <div class="order-info" id="orderInfo"></div>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Загрузка фотографий...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo viewer modal -->
+    <div class="photo-viewer" id="photoViewer">
+        <div class="close" onclick="closePhotoViewer()">&times;</div>
+        <div class="nav prev" onclick="prevPhoto()">&larr;</div>
+        <div class="nav next" onclick="nextPhoto()">&rarr;</div>
+        <img id="viewerImage" src="" alt="">
+    </div>
+
+    <script>
+    // Получаем базовый URL API
+        async function getApiBase() {
+            try {
+                const response = await fetch('/config.json');
+                if (response.ok) {
+                    const config = await response.json();
+                    return config.API_BASE || '/api';
+                }
+            } catch (e) {
+                console.warn('Не удалось загрузить конфигурацию');
+            }
+            return '/api';
+        }
+
+    // API origin (populated after loadOrder)
+    let apiOrigin = '';
+    
+    // Функция для определения API origin
+    function determineApiOrigin(apiBase) {
+        // Если API base это относительный путь (/api), используем текущий origin
+        if (apiBase.startsWith('/')) {
+            return window.location.origin;
+        }
+        // Если API base это полный URL, извлекаем origin
+        try {
+            const url = new URL(apiBase);
+            return url.origin;
+        } catch {
+            return window.location.origin;
+        }
+    }
+
+    // Получаем ID заказа из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order');
+
+        if (!orderId) {
+            showError('Не указан номер заказа');
+        } else {
+            loadOrder(orderId);
+        }
+
+        async function loadOrder(orderId) {
+            try {
+                // Получаем базовый URL API
+                const apiBase = await getApiBase();
+                apiOrigin = determineApiOrigin(apiBase);
+                console.log('[GALLERY] API Base:', apiBase, 'API Origin:', apiOrigin);
+                
+                const response = await fetch(`${apiBase}/orders/${orderId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Заказ не найден (${response.status})`);
+                }
+
+                const order = await response.json();
+                console.log('[GALLERY] Order loaded:', order);
+                displayOrder(order);
+            } catch (error) {
+                console.error('Ошибка загрузки заказа:', error);
+                showError('Не удалось загрузить заказ');
+            }
+        }
+
+        function displayOrder(order) {
+            // Обновляем заголовок
+            document.getElementById('orderTitle').textContent = `Заказ #${order.orderNumber || order.id}`;
+            
+            // Обновляем информацию о заказе
+            const orderInfo = document.getElementById('orderInfo');
+            orderInfo.innerHTML = `
+                <div class="info-item">
+                    <span>Дата:</span>
+                    <span>${formatDate(order.created_at)}</span>
+                </div>
+                <div class="info-item">
+                    <span>Фото:</span>
+                    <span>${order.photos_count} шт.</span>
+                </div>
+            `;
+
+            // Отображаем галерею
+            const content = document.getElementById('content');
+            
+            if (!order.photos || order.photos.length === 0) {
+                content.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">Фото</div>
+                        <div>В этом заказе пока нет фотографий</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Кнопка скачать все
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+            actions.innerHTML = `
+                <button class="download-all-btn" onclick="downloadAllPhotos()">
+                    <span>⬇</span>
+                    Скачать все фото
+                </button>
+            `;
+
+            const gallery = document.createElement('div');
+            gallery.className = 'gallery';
+
+            window.currentPhotos = order.photos; // Сохраняем для навигации
+
+            order.photos.forEach((photo, index) => {
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.onclick = () => openPhotoViewer(index);
+
+                // Построение URL для фото
+                let src = photo.path;
+                if (photo.path && photo.path.startsWith('/uploads')) {
+                    src = `${apiOrigin}${photo.path}`;
+                }
+                console.log('[GALLERY] Photo src:', src, 'from path:', photo.path);
+                photoItem.innerHTML = `
+                    <img src="${src}" alt="${photo.filename}" loading="lazy">
+                `;
+
+                gallery.appendChild(photoItem);
+            });
+
+            content.innerHTML = '';
+            content.appendChild(actions);
+            content.appendChild(gallery);
+        }
+
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="error">
+                    <div class="error-icon">Ошибка</div>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+
+        function formatDate(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            } catch {
+                return 'Неизвестно';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Б';
+            const k = 1024;
+            const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        let currentPhotoIndex = 0;
+
+        function openPhotoViewer(index) {
+            currentPhotoIndex = index;
+            const viewer = document.getElementById('photoViewer');
+            const image = document.getElementById('viewerImage');
+            const p = window.currentPhotos[index];
+            let imageSrc = p.path;
+            if (p.path && p.path.startsWith('/uploads')) {
+                imageSrc = `${apiOrigin}${p.path}`;
+            }
+            console.log('[GALLERY] Viewer image src:', imageSrc);
+            image.src = imageSrc;
+            viewer.classList.add('active');
+            updateNavigation();
+        }
+
+        function nextPhoto() {
+            if (currentPhotoIndex < window.currentPhotos.length - 1) {
+                currentPhotoIndex++;
+                const p2 = window.currentPhotos[currentPhotoIndex];
+                let nextSrc = p2.path;
+                if (p2.path && p2.path.startsWith('/uploads')) {
+                    nextSrc = `${apiOrigin}${p2.path}`;
+                }
+                document.getElementById('viewerImage').src = nextSrc;
+                updateNavigation();
+            }
+        }
+
+        function prevPhoto() {
+            if (currentPhotoIndex > 0) {
+                currentPhotoIndex--;
+                const prev = window.currentPhotos[currentPhotoIndex];
+                let prevSrc = prev.path;
+                if (prev.path && prev.path.startsWith('/uploads')) {
+                    prevSrc = `${apiOrigin}${prev.path}`;
+                }
+                document.getElementById('viewerImage').src = prevSrc;
+                updateNavigation();
+            }
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.querySelector('.nav.prev');
+            const nextBtn = document.querySelector('.nav.next');
+            
+            if (prevBtn) prevBtn.style.display = currentPhotoIndex > 0 ? 'flex' : 'none';
+            if (nextBtn) nextBtn.style.display = currentPhotoIndex < window.currentPhotos.length - 1 ? 'flex' : 'none';
+        }
+
+        async function downloadAllPhotos() {
+            if (!window.currentPhotos || window.currentPhotos.length === 0) return;
+            
+            for (let i = 0; i < window.currentPhotos.length; i++) {
+                const photo = window.currentPhotos[i];
+                try {
+                    let fetchUrl = photo.path;
+                    if (photo.path && photo.path.startsWith('/uploads')) {
+                        fetchUrl = `${apiOrigin}${photo.path}`;
+                    }
+                    console.log('[GALLERY] Download URL:', fetchUrl);
+                    const response = await fetch(fetchUrl);
+                    const blob = await response.blob();
+                    const downloadUrl = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = photo.filename || `photo_${i + 1}.jpg`;
+                    link.click();
+                    
+                    URL.revokeObjectURL(downloadUrl);
+                    
+                    // Пауза между скачиваниями
+                    if (i < window.currentPhotos.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                } catch (error) {
+                    console.error('Ошибка скачивания:', error);
+                }
+            }
+        }
+
+        function closePhotoViewer() {
+            const viewer = document.getElementById('photoViewer');
+            viewer.classList.remove('active');
+        }
+
+        // Закрытие по клику на фон
+        document.getElementById('photoViewer').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePhotoViewer();
+            }
+        });
+
+        // Клавиатурная навигация
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('photoViewer').classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    closePhotoViewer();
+                } else if (e.key === 'ArrowLeft') {
+                    prevPhoto();
+                } else if (e.key === 'ArrowRight') {
+                    nextPhoto();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

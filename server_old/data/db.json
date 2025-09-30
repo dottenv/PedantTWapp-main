@@ -1,0 +1,112 @@
+{
+  "users": [
+    {
+      "id": 665852999,
+      "first_name": "Алексей",
+      "last_name": "Голубев",
+      "username": "globenvi",
+      "language_code": "ru",
+      "is_premium": false,
+      "photo_url": "https://t.me/i/userpic/320/0_dVVK0Ejfb2fv5Z1Z55ADgG_BkU7cX0ahJwqEDIXE0.svg",
+      "role": "admin",
+      "status": "active",
+      "orders": 0,
+      "lastSeen": "2025-09-27T17:54:47.751Z",
+      "createdAt": "2025-09-27T15:06:02.884Z",
+      "updatedAt": "2025-09-27T17:54:47.751Z",
+      "name": "Алексей Голубев",
+      "registrationStatus": "registered",
+      "organizationName": "Голубев А.В",
+      "ownedServices": [
+        1758985587809
+      ],
+      "employeeServices": [],
+      "activeServiceId": 1758985587809
+    },
+    {
+      "id": 999999999,
+      "first_name": "Тестовый",
+      "last_name": "Пользователь",
+      "username": "testuser",
+      "language_code": "ru",
+      "is_premium": false,
+      "photo_url": "",
+      "role": "user",
+      "status": "active",
+      "orders": 0,
+      "lastSeen": "2025-09-27T17:54:37.953Z",
+      "createdAt": "2025-09-27T17:54:37.769Z",
+      "updatedAt": "2025-09-27T17:54:59.811Z",
+      "name": "Тестовый Пользователь",
+      "registrationStatus": "employee",
+      "organizationName": "",
+      "ownedServices": [],
+      "employeeServices": [
+        1758985587809
+      ],
+      "activeServiceId": 1758985587809
+    }
+  ],
+  "sessions": [
+    {
+      "id": "session_999999999_1758995677955",
+      "userId": 999999999,
+      "createdAt": "2025-09-27T17:54:37.955Z",
+      "lastActivity": "2025-09-27T17:54:37.955Z",
+      "userAgent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
+      "ip": "127.0.0.1",
+      "isActive": true
+    },
+    {
+      "id": "session_665852999_1758995687753",
+      "userId": 665852999,
+      "createdAt": "2025-09-27T17:54:47.753Z",
+      "lastActivity": "2025-09-27T17:54:47.753Z",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+      "ip": "127.0.0.1",
+      "isActive": true
+    }
+  ],
+  "orders": [],
+  "services": [
+    {
+      "id": 1758985587809,
+      "serviceNumber": "001",
+      "name": "Тест",
+      "address": "Тест",
+      "status": "active",
+      "ownerId": 665852999,
+      "createdAt": "2025-09-27T15:06:27.809Z",
+      "updatedAt": "2025-09-27T15:06:27.809Z"
+    }
+  ],
+  "serviceEmployees": [
+    {
+      "id": 1,
+      "serviceId": 1758985587809,
+      "userId": 665852999,
+      "role": "owner",
+      "permissions": [
+        "all"
+      ],
+      "status": "active",
+      "invitedBy": null,
+      "joinedAt": "2025-09-27T15:06:27.809Z"
+    },
+    {
+      "id": 2,
+      "serviceId": 1758985587809,
+      "userId": 999999999,
+      "role": "employee",
+      "permissions": [
+        "create_orders",
+        "view_orders",
+        "edit_orders"
+      ],
+      "status": "active",
+      "invitedBy": 665852999,
+      "joinedAt": "2025-09-27T17:54:59.807Z"
+    }
+  ],
+  "hiringQueue": []
+}

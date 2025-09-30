@@ -72,6 +72,8 @@ function App() {
       
       if (!isServerConnected) {
         telegramLogger.error('Не удалось подключиться к API серверу!');
+        // Запускаем тестирование API для отладки
+        await apiService.testAPI();
       }
       
       if (isServerConnected) {

@@ -1,4 +1,4 @@
 {
-  "API_BASE": "",
+  "API_BASE": "https://highly-consonant-chinook.cloudpub.ru/api",
   "NODE_ENV": "production"
 }

@@ -8,6 +8,7 @@ class ApiService {
     try {
       const healthUrl = getApiUrl('/health');
       telegramLogger.info(`🔍 Проверяем: ${healthUrl}`);
+      telegramLogger.info(`🔧 API_CONFIG.BASE_URL: ${API_CONFIG.BASE_URL}`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
@@ -34,7 +35,7 @@ class ApiService {
         // Пытаемся получить текст ошибки
         try {
           const errorText = await response.text();
-          telegramLogger.error(`❌ Ошибка сервера: ${errorText}`);
+          telegramLogger.error(`❌ Ошибка сервера: ${errorText.substring(0, 200)}`);
         } catch (e) {
           telegramLogger.error(`❌ Не удалось прочитать ошибку`);
         }
@@ -51,6 +52,35 @@ class ApiService {
       
       this.isServerAvailable = false;
       return false;
+    }
+  }
+  
+  // Добавляем метод для тестирования API
+  async testAPI(): Promise<void> {
+    try {
+      telegramLogger.info('🧪 Тестируем API endpoints...');
+      
+      // Тест базового endpoint
+      const testUrl = getApiUrl('/test');
+      const testResponse = await fetch(testUrl);
+      if (testResponse.ok) {
+        const testData = await testResponse.json();
+        telegramLogger.success(`✅ Test endpoint: ${JSON.stringify(testData)}`);
+      } else {
+        telegramLogger.error(`❌ Test endpoint failed: ${testResponse.status}`);
+      }
+      
+      // Тест localhost fallback
+      const localhostUrl = 'http://localhost:3001/api/health';
+      telegramLogger.info(`🔍 Тестируем localhost: ${localhostUrl}`);
+      const localhostResponse = await fetch(localhostUrl);
+      if (localhostResponse.ok) {
+        telegramLogger.success('✅ Localhost доступен');
+      } else {
+        telegramLogger.error(`❌ Localhost недоступен: ${localhostResponse.status}`);
+      }
+    } catch (error: any) {
+      telegramLogger.error(`❌ Тест API failed: ${error.message}`);
     }
   }
   

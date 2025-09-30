@@ -11,7 +11,8 @@ class Settings(BaseSettings):
 
     @property
     def api_base(self) -> str:
-        return (self.CLOUDPUB_SERVER_URL or self.public_api_base or "http://localhost:3001").rstrip("/")
+        base_url = self.CLOUDPUB_SERVER_URL or self.public_api_base or "http://localhost:3001"
+        return base_url.rstrip("/")
 
     @property
     def cors_origins(self) -> List[str]:

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -28,17 +29,39 @@ from .utils import LoggerUtils, client_logger
 
 app = FastAPI(title="PedantTW Server", version="0.1.0")
 
+# Обработчик ошибок для возврата JSON вместо HTML
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Not Found", "path": str(request.url.path)}
+    )
+
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "error": str(exc)}
+    )
+
 # CORS: временно максимально либеральный, чтобы исключить проблемы туннеля cloudpub
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Добавляем middleware для логирования
 app.middleware("http")(log_requests)
+
+# Добавляем обслуживание статических файлов
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+except Exception:
+    pass  # Игнорируем если папка static не существует
 
 # Инициализация сервисов
 user_service = UserService()
@@ -55,29 +78,65 @@ orders_controller = OrdersController(order_service, employee_service)
 hiring_queue_controller = HiringQueueController(hiring_queue_service)
 
 
+@app.get("/")
+async def root():
+    return JSONResponse({
+        "message": "PedantTW Server is running",
+        "version": app.version,
+        "api_base": settings.api_base,
+        "endpoints": {
+            "health": "/api/health",
+            "config": "/config.json",
+            "api_docs": "/docs"
+        }
+    })
+
+
 @app.get("/api/health")
 async def health(request: Request):
     origin = request.headers.get("origin") or request.client.host if request.client else None
     ua = request.headers.get("user-agent", "")
-    return {
-        "status": "ok",
-        "version": app.version,
-        "environment": settings.node_env,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "cors": {
-            "origin": origin or "",
-            "userAgent": ua,
-            "allowed": ["*"]
+    return JSONResponse(
+        {
+            "status": "ok",
+            "version": app.version,
+            "environment": settings.node_env,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "api_base": settings.api_base,
+            "cors": {
+                "origin": origin or "",
+                "userAgent": ua,
+                "allowed": ["*"]
+            },
         },
-    }
+        headers={
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache"
+        }
+    )
 
 
 @app.get("/config.json")
 async def runtime_config():
-    return JSONResponse({
-        "API_BASE": f"{settings.api_base}/api",
-        "NODE_ENV": settings.node_env,
-    })
+    api_base = settings.api_base
+    # Убираем дублирование /api если оно уже есть
+    if api_base.endswith('/api'):
+        final_api_base = api_base
+    else:
+        final_api_base = f"{api_base}/api"
+    
+    return JSONResponse(
+        {
+            "API_BASE": final_api_base,
+            "NODE_ENV": settings.node_env,
+        },
+        headers={
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 
 # ===== USERS API =====
@@ -185,8 +244,16 @@ async def hire_employee(payload: dict, current_user: User = Depends(require_auth
 
 # ===== ORDERS API =====
 @app.get("/api/orders")
-async def get_orders(current_user: User = Depends(require_authentication)):
-    return await orders_controller.get_all_orders()
+async def get_orders():
+    try:
+        result = await orders_controller.get_all_orders()
+        return JSONResponse(result, headers={"Content-Type": "application/json"})
+    except Exception as e:
+        return JSONResponse(
+            {"error": str(e), "orders": []},
+            status_code=500,
+            headers={"Content-Type": "application/json"}
+        )
 
 
 @app.get("/api/orders/{order_id}")
@@ -285,7 +352,10 @@ async def get_queue_stats(employer_id: int, current_user: User = Depends(require
 # ===== LEGACY ENDPOINTS =====
 @app.get("/api/settings")
 async def get_settings():
-    return {"locale": "ru", "features": {}, "theme": "light"}
+    return JSONResponse(
+        {"locale": "ru", "features": {}, "theme": "light"},
+        headers={"Content-Type": "application/json"}
+    )
 
 
 @app.post("/api/init")
@@ -303,7 +373,10 @@ async def init_user(payload: dict):
     }
     saved = await db.upsert("users", {k: v for k, v in data.items() if v is not None}, key_field="id")
     session = {"token": f"sess-{saved['id']}", "createdAt": datetime.utcnow().isoformat() + "Z"}
-    return {"user": saved, "session": session}
+    return JSONResponse(
+        {"user": saved, "session": session},
+        headers={"Content-Type": "application/json"}
+    )
 
 
 @app.get("/api/logs/stream")
@@ -319,7 +392,16 @@ async def logs_stream():
             }
             yield f"data: {json.dumps(payload)}\n\n"
             await asyncio.sleep(15)
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Cache-Control"
+        }
+    )
 
 
 # ===== DEBUG ENDPOINTS =====
@@ -337,17 +419,33 @@ async def debug_hire(payload: dict):
 
 @app.get("/api/debug/db")
 async def debug_db():
-    users = await db.list("users")
-    services = await db.list("services")
-    service_employees = await db.list("serviceEmployees")
-    hiring_queue = await db.list("hiringQueue")
-    
-    return {
-        "users": len(users),
-        "services": len(services),
-        "serviceEmployees": service_employees,
-        "hiringQueue": len(hiring_queue)
-    }
+    try:
+        users = await db.list("users")
+        services = await db.list("services")
+        service_employees = await db.list("serviceEmployees")
+        hiring_queue = await db.list("hiringQueue")
+        
+        return JSONResponse({
+            "users": len(users),
+            "services": len(services),
+            "serviceEmployees": service_employees,
+            "hiringQueue": len(hiring_queue),
+            "status": "ok"
+        })
+    except Exception as e:
+        return JSONResponse(
+            {"error": str(e), "status": "error"},
+            status_code=500
+        )
+
+
+@app.get("/api/test")
+async def test_endpoint():
+    return JSONResponse({
+        "message": "Test endpoint working",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "server_url": settings.api_base
+    })
 
 
 @app.post("/api/session/ping")

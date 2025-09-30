@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Depends
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Depends, Path
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -48,14 +48,24 @@ async def internal_error_handler(request: Request, exc: Exception):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_credentials=False,  # Должно быть False при allow_origins=["*"]
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
 
 # Добавляем middleware для логирования
 app.middleware("http")(log_requests)
+
+# Дополнительные CORS заголовки
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    return response
 
 # Добавляем обслуживание статических файлов
 try:
@@ -77,6 +87,18 @@ employees_controller = EmployeesController(employee_service, user_service)
 orders_controller = OrdersController(order_service, employee_service)
 hiring_queue_controller = HiringQueueController(hiring_queue_service)
 
+
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str = Path(...)):
+    return JSONResponse(
+        content={"message": "OK"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "86400"
+        }
+    )
 
 @app.get("/")
 async def root():
